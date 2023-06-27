@@ -12,7 +12,7 @@ ENV PATH="/usr/local/go/bin:$PATH"
 RUN yum update -y
 
 # Copy your Go code to the container
-COPY test.go go.mod go.sum /home/scripts/go/vault/
+COPY vault-login.go go.mod go.sum /home/scripts/go/vault/
 
 # Set the working directory
 WORKDIR /home/scripts/go/vault
