@@ -4,8 +4,6 @@ import (
     "fmt"
     "io/ioutil"
     "log"
-    "os"
-    "path/filepath"
 
     "github.com/hashicorp/vault/api"
 )
