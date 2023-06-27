@@ -23,5 +23,4 @@ jobs:
       - name: Build the Docker image
         run: |
          docker build ./vault-k8s-login/ --tag ghcr.io/dystewart/vault-k8s-login:latest
-         docker run ghcr.io/dystewart/vault-k8s-login:latest
          docker push ghcr.io/dystewart/vault-k8s-login:latest
