@@ -1,0 +1,43 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: manual-test
+  namespace: vault
+spec:
+  parallelism: 1
+  completions: 1
+  backoffLimit: 6
+  template:
+    metadata:
+      name: trigger-backup-job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: backup-job
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      containers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: submit-backup-job
+          command:
+            - /bin/sh
+            - '-ec'
+            - 'oc create -f /backupjob/taskrun.yaml -n ${POD_NS}'
+          env:
+            - name: POD_NS
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: backup-vault-run
+              mountPath: /backupjob
+          terminationMessagePolicy: File
+          image: 'quay.io/operate-first/opf-toolbox:v0.8.0'
+      volumes:
+        - name: backup-vault-run
+          configMap:
+            name: backup-vault-run
+            defaultMode: 420

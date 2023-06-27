@@ -1,0 +1,18 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    vault "github.com/hashicorp/vault/api"
+)
+
+func main() {
+    config := vault.DefaultConfig()
+
+    config.Address = "http://127.0.0.1:8200"
+}
