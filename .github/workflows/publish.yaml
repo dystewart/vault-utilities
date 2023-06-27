@@ -6,6 +6,7 @@ on:
        - main
     paths:
        - /vault-k8s-login/Dockerfile
+  workflow_dispatch:     
 
 jobs:
   publish-vault-k8s-login:
