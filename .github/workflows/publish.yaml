@@ -1,11 +1,14 @@
 name: publish
 
-on: 
+on:
   push:
     branches:
-       - main
-    paths:
-       - /vault-k8s-login/Dockerfile
+      - main
+  image:
+    types:
+      - published
+    name:
+      - ghcr.io/dystewart/vault-k8s-login:latest
   workflow_dispatch:     
 
 jobs:
