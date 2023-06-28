@@ -32,10 +32,7 @@ func main() {
     }
 
     // Obtain the Vault token from the authentication response
-    vaultToken, ok := secret.Auth.ClientToken()
-    if !ok {
-      log.Fatal("Failed to retrieve Vault token")
-    }
+    vaultToken := secret.Auth
 
     // Set the Vault token in the Vault client
     client.SetToken(vaultToken)
