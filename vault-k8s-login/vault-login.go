@@ -32,7 +32,7 @@ func main() {
     }
 
     // Obtain the Vault token from the authentication response
-    vaultToken, ok := secret.Auth["client_token"].(string)
+    vaultToken, ok := secret.Auth.ClientToken()
     if !ok {
       log.Fatal("Failed to retrieve Vault token")
     }
