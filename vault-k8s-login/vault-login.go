@@ -49,5 +49,3 @@ func createVaultClient(vault_addr string) (*api.Client, error) {
 
     return client, nil
 }
-
-func setVaultToken()
