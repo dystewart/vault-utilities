@@ -28,13 +28,13 @@ func main() {
     // Authenticate with Vault using the service account token
     secret, err := authenticateWithVault(client, string(token))
     if err != nil {
-        log.Fatalf("Failed to authenticate with Vault: %v", err)
+      log.Fatalf("Failed to authenticate with Vault: %v", err)
     }
 
     // Obtain the Vault token from the authentication response
-    vaultToken, ok := secret.Auth.ClientToken()
+    vaultToken, ok := secret.Auth["client_token"].(string)
     if !ok {
-        log.Fatal("Failed to retrieve Vault token")
+      log.Fatal("Failed to retrieve Vault token")
     }
 
     // Set the Vault token in the Vault client
