@@ -22,9 +22,16 @@ func main() {
     vault_addr := "http://nerc-vault.vault.svc:8200"
     client, err := createVaultClient(vault_addr)
 
-    fmt.Println("Token: %v", token)
-    fmt.Println("tokenPath: %v", tokenPath)
-    fmt.Println("vault addr: %v", client.Address())
+    // Set the service account token as the Vault token
+    client.SetToken(string(token))
+
+    // Perform a sample operation to validate the login
+    secret, err := client.Logical().Read("nerc/nerc-ocp-test/postgres")
+    if err != nil {
+        log.Fatalf("Failed to read secret: %v", err)
+    }
+
+    fmt.Println("Secret: ", secret.Data)
 
 }
 
@@ -43,4 +50,4 @@ func createVaultClient(vault_addr string) (*api.Client, error) {
     return client, nil
 }
 
-
+func setVaultToken()
