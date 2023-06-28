@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  image:
+  registry_package:
     types:
       - published
     name:
