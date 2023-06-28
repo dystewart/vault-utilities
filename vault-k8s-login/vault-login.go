@@ -34,8 +34,12 @@ func main() {
     // Obtain the Vault token from the authentication response
     vaultToken := secret.Auth
 
+    // Extract the token string from the vaultToken object
+    tokenString := vaultToken.ClientToken
+
     // Set the Vault token in the Vault client
-    client.SetToken(vaultToken)
+    client.SetToken(tokenString)
+
 
     // Perform a sample operation to validate the login
     secretData, err := readSecret(client, "nerc/nerc-ocp-test/postgres")
