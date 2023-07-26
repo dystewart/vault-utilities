@@ -2,8 +2,7 @@ package main
 
 import (
     "fmt"
-    "io/ioutil"
-    "log"
+    "os"
 
     "github.com/hashicorp/vault/api"
 )
@@ -12,42 +11,47 @@ func main() {
     // Vault address
     vaultAddr := "http://nerc-vault.vault.svc:8200"
 
-    // Create a new Vault client
+     // Create a new Vault client
     client, err := createVaultClient(vaultAddr)
     if err != nil {
         log.Fatalf("Failed to create Vault client: %v", err)
-    }
+    }   
 
-    // Retrieve the service account token from the file
-    tokenPath := "/var/run/secrets/kubernetes.io/serviceaccount/token"
-    token, err := ioutil.ReadFile(tokenPath)
+    // The service-account token will be read from the path where the token's
+    // Kubernetes Secret is mounted. By default, Kubernetes will mount it to
+    // /var/run/secrets/kubernetes.io/serviceaccount/token, but an administrator
+    // may have configured it to be mounted elsewhere.
+    k8sAuth, err := auth.NewKubernetesAuth(
+        "backup",
+        auth.WithMountPath("/auth/kubernetes/backup"),
+        auth.WithServiceAccountTokenPath("/var/run/secrets/kubernetes.io/serviceaccount/token"),
+    )
     if err != nil {
-        log.Fatalf("Failed to read token file: %s", err)
+        return "", fmt.Errorf("unable to initialize Kubernetes auth method: %w", err)
     }
 
-    // Authenticate with Vault using the service account token
-    secret, err := authenticateWithVault(client, string(token))
+    authInfo, err := client.Auth().Login(context.TODO(), k8sAuth)
     if err != nil {
-      log.Fatalf("Failed to authenticate with Vault: %v", err)
+        return "", fmt.Errorf("unable to log in with Kubernetes auth: %w", err)
     }
-
-    // Obtain the Vault token from the authentication response
-    vaultToken := secret.Auth
-
-    // Extract the token string from the vaultToken object
-    tokenString := vaultToken.ClientToken
-
-    // Set the Vault token in the Vault client
-    client.SetToken(tokenString)
-
-
-    // Perform a sample operation to validate the login
-    secretData, err := readSecret(client, "nerc/nerc-ocp-test/postgres")
+    if authInfo == nil {
+        return "", fmt.Errorf("no auth info was returned after login")
+    }
+    
+    // get secret from Vault, from the default mount path for KV v2 in dev mode, "secret"
+    secret, err := client.KVv2("nerc").Get(context.Background(), "bmc_credentials")
     if err != nil {
-        log.Fatalf("Failed to read secret: %v", err)
+        return "", fmt.Errorf("unable to read secret: %w", err)
     }
 
-    fmt.Println("Secret: ", secretData)
+    // data map can contain more than one key-value pair,
+    // in this case we're just grabbing one of them
+    value, ok := secret.Data["username"].(string)
+    if !ok {
+        return "", fmt.Errorf("value type assertion failed: %T %#v", secret.Data["username"], secret.Data["username"])
+    }
+
+    
 }
 
 func createVaultClient(vaultAddr string) (*api.Client, error) {
@@ -65,33 +69,3 @@ func createVaultClient(vaultAddr string) (*api.Client, error) {
     return client, nil
 }
 
-func authenticateWithVault(client *api.Client, token string) (*api.Secret, error) {
-    // Authenticate with Vault using the service account token
-    authPath := "auth/kubernetes/backup/"
-    authData := map[string]interface{}{
-        "role":       "backup",
-        "jwt":        token,
-        "kubernetes": "true",
-    }
-
-    secret, err := client.Logical().Write(authPath, authData)
-    if err != nil {
-        return nil, fmt.Errorf("Failed to authenticate with Vault: %v", err)
-    }
-
-    return secret, nil
-}
-
-func readSecret(client *api.Client, path string) (map[string]interface{}, error) {
-    // Read a secret from Vault
-    secret, err := client.Logical().Read(path)
-    if err != nil {
-        return nil, fmt.Errorf("Failed to read secret: %v", err)
-    }
-
-    if secret == nil || secret.Data == nil {
-        return nil, fmt.Errorf("Secret not found")
-    }
-
-    return secret.Data, nil
-}

@@ -12,10 +12,12 @@ ENV PATH="/usr/local/go/bin:$PATH"
 RUN yum update -y
 
 # Copy your Go code to the container
-COPY vault-login.go go.mod go.sum /home/scripts/go/vault/
+# COPY test.go go.mod go.sum /home/scripts/go/vault/
+
+COPY authenticate.sh /home/scripts/shell/
 
 # Set the working directory
-WORKDIR /home/scripts/go/vault
+WORKDIR /home/scripts/shell/
 
 # Build or install your Go application
-RUN go build -o login-test
+# RUN go build -o login-test
